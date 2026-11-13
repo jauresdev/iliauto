@@ -1,0 +1,30 @@
+# Pas de listing de dossiers, pas de fichiers cachés accessibles
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Protège les identifiants en redirigeant toute requête vers HTTPS.
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Sert les fichiers compilés Vite sans intercepter les routes PHP.
+    RewriteCond %{REQUEST_URI} !^/(api|admin|data|uploads)(/|$)
+    RewriteCond %{DOCUMENT_ROOT}/dist/index.html -f
+    RewriteRule ^$ dist/index.html [L]
+
+    RewriteCond %{REQUEST_URI} !^/(api|admin|data|uploads)(/|$)
+    RewriteCond %{DOCUMENT_ROOT}/dist%{REQUEST_URI} -f
+    RewriteRule ^(.+)$ dist/$1 [L]
+</IfModule>
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# En-têtes de sécurité (si mod_headers est actif)
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
